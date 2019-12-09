@@ -1,0 +1,21 @@
+require "bundler/setup"
+
+$LOAD_PATH << __dir__ + "/lib"
+require "crypt6fm"
+
+task :console do
+  require "irb"
+  ARGV.clear
+  IRB.start
+end
+
+task :run do
+  Crypt6fm.DEBUG = true if ENV["DEBUG"] == "1"
+
+  password = ENV["PASSWORD"] || nil
+  salt = ENV["SALT"] || nil
+  round = ENV["ROUND"] ? ENV["ROUND"].to_i : nil
+  puts Crypt6fm.build(password, salt, round)
+  puts "password: #{password}"
+  puts "salt: #{salt}"
+end

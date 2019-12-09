@@ -1,0 +1,160 @@
+// ruby の unix-crypt のアルゴリズムコードを基に、ほぼ同じ実装を FileMaker で行うためのメモ
+// 実装途中のメモなので、バグが多数残ってます。どういう感じで実装しているのかをみたい方用
+//
+// 参考にした ruby のコード
+// https://github.com/mogest/unix-crypt/blob/master/lib/unix_crypt/base.rb
+// https://github.com/mogest/unix-crypt/blob/master/lib/unix_crypt/sha.rb
+
+// salt 16文字 = 16 * 6bit(64進数) = 96bit = 12byte
+// UUID 32文字 = 32 * 4bit(16進数) = 128bit = 16byte
+
+// パスワードの長さ制限: 8〜64文字
+
+// 引数
+password = "rawPassword";
+salt = "SALT";
+rounds = 1000;
+
+// Default values
+~default_salt_length = 16;
+~max_salt_length     = 16;
+~default_rounds      = 5000;
+~algorithm           = "SHA512";
+
+// 文字列複製用のドット Substitute で文字列のリピートを再現 (MAX 256)
+~repeatBase = "................................................................................................................................................................................................................................................................";
+
+~passwordLength = Length(password);
+~passwordHex = HexEncode(password);
+~saltLength = Length(salt);
+
+// algorithm byte length
+~length = 64;
+
+// MCF(Modular Crypt Format) identifier
+~identifier = "6f"; // 6 = SHA256, F = FileMaker
+
+// apply_rounds_bounds
+~rounds = Case(
+  IsEmpty(rounds); ~default_rounds;
+  rounds < 1000; 1000;
+  rounds > 999999999; 999999999;
+  rounds
+);
+
+// ruby: b = digest.digest("#{password}#{salt}#{password}")
+~b = CryptDigest(password & salt & password; ~algorithm);
+~bHex = HexEncode(~b);
+
+// ruby: a_string = password + salt + b * (password.length/length) + b[0...password.length % length]
+// 複雑になるので計算式を分割する
+// ruby: `b * (password.length/length)`
+// => ~bRepeatHex
+//   アルゴリズムのバイト数 とパスワードの文字数で割れる数分、~b を繰り返した文字列
+//   最大64文字に制限しているので、最大2回しか繰り返さない
+~bRepeatHex = If(Int(~passwordLength / ~length) = 1; ~bHex; "");
+// ruby: `b[0...password.length % length]`
+// => ~bFrontHex
+//   `b[0...password.length % length]` は b の先頭 `password.length % length` * 8bit なので、
+//   HexEncode で 16進数 (4bit) に変換し、Leftで先頭 `password.length % length` * 8bit 持ってくる
+//   HexDecode(Left(~bHex; Mod(~passwordLength; ~length) * 2); True)
+~bFrontLength = If(Mod(~passwordLength; ~length) > 0; Mod(~passwordLength; ~length) * 2; 0);
+~bFrontHex = Left(~bHex; ~bFrontLength);
+
+~aStringHex = ~passwordHex & HexEncode(salt) & ~bRepeatHex & ~bFrontHex;
+~aString = HexDecode(~aStringHex; True);
+
+// パスワードの文字数の長さを基に b or password を aString に連結する
+// ruby: password_length = password.length
+// ruby: while password_length > 0
+// ruby:   a_string += (password_length & 1 != 0) ? b : password
+// ruby:   password_length >>= 1
+// ruby: end
+// while ループが FileMaker だと辛いので p, b に展開した ~repeatBitList を使って 8〜64文字まで対応表
+~repeatBitList = List("pppb"; "bppb"; "pbpb"; "bbpb"; "ppbb"; "bpbb"; "pbbb"; "bbbb"; "ppppb"; "bpppb"; "pbppb"; "bbppb";
+  "ppbpb"; "bpbpb"; "pbbpb"; "bbbpb"; "pppbb"; "bppbb"; "pbpbb"; "bbpbb"; "ppbbb"; "bpbbb"; "pbbbb"; "bbbbb"; "pppppb";
+  "bppppb"; "pbpppb"; "bbpppb"; "ppbppb"; "bpbppb"; "pbbppb"; "bbbppb"; "pppbpb"; "bppbpb"; "pbpbpb"; "bbpbpb"; "ppbbpb";
+  "bpbbpb"; "pbbbpb"; "bbbbpb"; "ppppbb"; "bpppbb"; "pbppbb"; "bbppbb"; "ppbpbb"; "bpbpbb"; "pbbpbb"; "bbbpbb"; "pppbbb";
+  "bppbbb"; "pbpbbb"; "bbpbbb"; "ppbbbb"; "bpbbbb"; "pbbbbb"; "bbbbbb"; "ppppppb");
+~aStringHex = ~aStringHex & Substitute(GetValue(~repeatBitList; ~passwordLength - 7); ["p"; ~passwordHex]; ["b"; ~bHex]);
+~aString = HexDecode(~aStringHex; True);
+
+// ruby: input = digest.digest(a_string)
+~input = CryptDigest(a_string; ~algorithm);
+~inputHex = HexEncode(~input);
+
+// ruby: dp = digest.digest(password * password.length)
+// パスワードをパスワードの文字数分リピートした文字の digest
+~dp = CryptDigest(Substitute(Left(~repeatBase; ~passwordLength); "."; password); ~algorithm);
+~dpHex = HexEncode(~dp);
+
+// ruby: p = dp * (password.length/length) + dp[0...password.length % length]
+~pHex = Substitute(Left(~repeatBase; Int(~passwordLength / ~length)); "."; ~dpHex) & Left(~dpHex; Mod(~passwordLength; ~length) * 2);
+~p = HexEncode(~pHex);
+
+// ruby: ds = digest.digest(salt * (16 + input.bytes.first))
+~inputFirstByte = Let([
+    ~firstByte = Left(~inputHex; 2);
+    ~first = Left(~firstByte; 1);
+    ~first = Substitute(~first; ["A"; 10]; ["A"; 10]; ["B"; 11]; ["C"; 12]; ["D"; 13]; ["E"; 14]; ["F"; 15]);
+    ~last = Right(~firstByte; 1);
+    ~last = Substitute(~last; ["A"; 10]; ["A"; 10]; ["B"; 11]; ["C"; 12]; ["D"; 13]; ["E"; 14]; ["F"; 15]);
+  _=0];
+    ~last + (~first * 16)
+  )
+~repeatedSalt = Substitute(Left(~repeatBase; (16 + ~inputFirstByte)); "."; salt);
+~ds = CryptDigest(~repeatedSalt; ~algorithm);
+~dsHex = HexEncode(CryptDigest(~repeatedSalt; ~algorithm));
+
+// ruby: s = ds * (salt.length/length) + ds[0...salt.length % length]
+~sHex = Substitute(Left(~repeatBase; Int(~saltLength / ~length)); "."; ~dsHex)
+          & Left(~dsHex; Mod(~saltLength; ~length) * 2);
+~s = HexDecode(~sHex; True);
+
+// ストレッチング処理 / ループがどうしても必要なのでカスタム関数にする。
+// ruby: rounds.times do |index|
+// ruby:   c_string = ((index & 1 != 0) ? p : input)
+// ruby:   c_string += s unless index % 3 == 0
+// ruby:   c_string += p unless index % 7 == 0
+// ruby:   c_string += ((index & 1 != 0) ? input : p)
+// ruby:   input = digest.digest(c_string)
+// ruby: end
+/* ========================================================================================== */
+// FMCryptRound(max; index; digestAlgorithm; inputHex; convertedSaltHex; convertedPasswordHex)
+//
+// Result: CryptDigest Object
+Let([
+  ~cHex = If(Mod(index; 2); convertedPasswordHex; inputHex);
+  ~cHex = If(not Mod(index; 3) == 0; ~cHex & ~sHex; ~cHex);
+  ~cHex = If(not Mod(index; 7) == 0; ~cHex & ~pHex; ~cHex);
+  ~cHex = If(Mod(index; 2); ~cHex & inputHex; ~cHex & ~pHex);
+  ~result = CryptDigest(HexDecode(~cHex; True); digestAlgorithm);
+
+  ~resultHex = HexEncode(CryptDigest(~cHex; digestAlgorithm));
+  ~nextIndex = index + 1;
+_=0];
+  Case(
+    max = index;
+    ~result;
+
+    max > index;
+    FMCryptRound(max; ~nextIndex; digestAlgorithm; ~resultHex; convertedSaltHex; convertedPasswordHex);
+
+    "?"
+  )
+)
+/* ========================================================================================== */
+
+~input = FMCryptRound(~rounds; 0; ~algorithm; ~inputHex; ~sHex; ~pHex);
+
+// bit_specified_base64encode()
+// FileMaker ではビット演算が難しいので、SHA512 で代用
+// よって、ここで互換性途切れる
+Substitute(Base64Encode(CryptDigest(~input; "SHA512")); ["+"; "."], ["="; ""]);
+
+// generate_salt()
+// FileMaker には 使えそうな乱数生成が UUID ぐらいしかないので、UUID を使って 128bit の乱数を生成
+// Base64Encode した先頭16文字(default_salt_length) 96bitを使用する
+// ruby : SecureRandom.base64((default_salt_length * 6 / 8.0).ceil).tr("+", ".")[0...default_salt_length]
+Left(Substitute(Base64Encode(HexDecode(Get(UUID); True)); "+"; "."); ~default_salt_length)
+

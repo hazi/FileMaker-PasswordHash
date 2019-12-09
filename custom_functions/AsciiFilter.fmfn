@@ -1,0 +1,21 @@
+// AsciiFilter(textToFilter)
+// Returns text filtered only to symbols / alphanumeric characters available in ASCII
+// However, invisible characters (00-19, 7F) excluding SPACE such as TAB, DEL, CR, and LD are not included.
+//
+// ver 0.1
+// LastUpdate: 2019/12/05
+// Compatible: FileMaker Pro 7 and later
+//
+// Params:
+//   textToFilter: [Text]
+//
+// Result: [Text]
+Filter(
+  textToFilter;
+   " !\"#$%&'()*+,-./"
+  & "0123456789:;<=>?"
+  & "@ABCDEFGHIJKLMNO"
+  & "PQRSTUVWXYZ[\]^_"
+  & "`abcdefghijklmno"
+  & "pqrstuvwxyz{|}~"
+)
