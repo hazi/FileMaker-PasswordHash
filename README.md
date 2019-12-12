@@ -2,8 +2,8 @@
 
 UNIX Crypt implemented with FileMaker custom functions
 
-このプロジェクトは UNIX のパスワードハッシュ化（復号できない暗号化）アルゴリズム（crypt）を
-FileMaker のカスタム関数実装に置き換えたものです。
+このプロジェクトはUNIXのパスワードハッシュ化（復号できない暗号化）アルゴリズム（crypt）を
+FileMakerのカスタム関数実装に置き換えたものです。
 
 ## 利用方法
 
@@ -21,14 +21,14 @@ FileMaker のカスタム関数実装に置き換えたものです。
 
 ### 情報登録
 
-ユーザーのパスワード入力を受けた後、変数などを通じて PasswordHash 関数にパスワードを渡します
+ユーザーのパスワード入力を受けた後、変数などを通じて `PasswordHash` 関数にパスワードを渡します
 
 ```java
 // $password にユーザー入力値のパスワードが格納されている例
 PasswordHash($password; ""; "") //=> $6f$AeV5CacT$1NTsNCi$a/oyZR8su9MLQuXc1dgvWo4oPyZCSt237LZ4bbPybsIdgv6bvazJcHilcpfBP337gQKXSf4Vr/aFrpNwwcGweg
 ```
 
-PasswordHash の戻り値（ハッシュ値）をユーザーの認証情報として適切なフィールドに保存します。
+`PasswordHash` の戻り値（ハッシュ値）をユーザーの認証情報として適切なフィールドに保存します。
 戻り値が `?` から始まるエラーである可能性があります。その場合その値を保存するのは危険です。
 必ず、チェックしてから保存するようにしてください。
 
@@ -69,8 +69,8 @@ Let(
 )
 ```
 
-必ず`Exact`で`True`が帰ってきているか検証してください。
-`PasswordVerify` の戻り値をそのまま `If` で利用すると、エラー時の `?` も True と判断され、認証が正しく行えません。
+必ず `Exact` で `True` が帰ってきているか検証してください。
+`PasswordVerify` の戻り値をそのまま `If` で利用すると、エラー時の `?` も `True` と判断され、認証が正しく行えません。
 
 ## 実装詳細
 
