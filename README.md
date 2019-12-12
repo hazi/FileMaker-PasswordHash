@@ -95,6 +95,7 @@ $ rake run DEBUG=1 PASSWORD="10000round" ROUND="10000" SALT="d7NNUNKUfiL/vaP4"
 ## コラボレーション
 
 - リポジトリをフォークし、そのリポジトリのブランチを元にPull requestを作成してください。
+- `spec.fmp12` ファイルを変更した後はXMLスキーマ情報をUTF-8, LFに変換してコミットしてください（FileMaker Pro 18 Advanced以降必須）。
 - Issueでのご指摘受け付けていますので、お気軽にご連絡ください。
 - 英語化などのご協力も募集中です。
 
