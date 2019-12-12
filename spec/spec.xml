@@ -7,7 +7,7 @@
 			</BaseDirectoryCatalog>
 			<BaseTableCatalog membercount="1">
 				<BaseTable id="129" name="spec">
-					<TagList>#^FMI%TBLA3D2CC1618D099EB618703960F4A0827BA47B4755E591A2FE4BAC17579FD4B5726507087538A4EF59ED62551A816AE8D </TagList>
+					<TagList>#^FMI%TBLA3D2CC1618D099EB618703960F4A0827BA47B4755E591A2FE4BAC17579FD4B5765DA1C8292904A1F95E63A7F6FB40982 </TagList>
 				</BaseTable>
 			</BaseTableCatalog>
 			<TableOccurrenceCatalog membercount="1">
@@ -195,6 +195,8 @@
 //   textToFilter: [Text]
 //
 // Result: [Text]
+//
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Filter(
   textToFilter;
    " !\"#$%&'()*+,-./"
@@ -213,6 +215,8 @@ Filter(
 // Perform PasswordHash stretching process
 //
 // Result: [Object] CryptDigest
+//
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Let([
   ~cHex = If(Mod(index; 2); convertedPasswordHex; inputHex);
   ~cHex = If(not Mod(index; 3) = 0; ~cHex & convertedSaltHex; ~cHex);
@@ -278,6 +282,8 @@ _=0];
 //     PasswordHash("Password"; "/pFNGxeaFY7bSiX4"; "")
 //   5万回を超えるストレッチングを行う例（FileMaker 18以上必須）:
 //     SetRecursion(PasswordHash("Password"; ""; 60000); 60100)
+//
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Case(
   // Validation
   not Exact(salt; Char(26)) and not Exact(AsciiFilter(salt); salt); "?:Character that cannot be used for Salt";
@@ -384,6 +390,7 @@ Case(
 // 経過途中の変数をログとして出力することで、Rubyのプログラムと比較しやすくする為に作成
 // 脆弱な値を出力しまくるので、通常開発用途以外での使用は行わない。
 //
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Case(
   // Validation
   not Exact(salt; Char(26)) and not Exact(AsciiFilter(salt); salt); "?:Character that cannot be used for Salt";
@@ -506,6 +513,8 @@ Case(
 //   numberOfCharacters: [Number] 文字数。最大20。
 //
 // Result: [Text] Base64Encodeを基にした文字列（"+" 記号は "." に置き換えられ、"="は削除されます）
+//
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Let([
   ~num = GetAsNumber(numberOfCharacters);
   ~uuid = Substitute(Get(UUID); "-"; "");
@@ -542,6 +551,8 @@ _=0];
 //   5万回を超えるストレッチングを検証する場合（FileMaker 18以上必須）:
 //     $hash "$6f$rounds=60000$7HM2jvfdM9/gYvKj$OHXOzqBUI2bw.xCjFMf1tl1WudWsBRwUYrBEp8bUG651ciJDhOeIP0cnREwjul9KFvOnxj0pH6lgYXYpSkTC6w";
 //     SetRecursion(Exact(PasswordVerify("Password"; $hash); True); 60100)
+//
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Let([
   ~separator = "$";
   ~hash = hash;
@@ -581,15 +592,15 @@ _=0];
 			<ScriptCatalog membercount="3">
 				<Script id="1" name="run spec">
 					<Options hidden="False" access="ReadWrite" runwithfullaccess="False" compatibility="0">0</Options>
-					<TagList>#^FMI%SCRPT1F5A35458A502FC8AFE5FFC2AC91BD33B5F6AAA4CFA4EFFFA85DCEB8B8F3746E2C25FE84290947A982B48D8AA20AC2C5 </TagList>
+					<TagList>#^FMI%SCRPT1F5A35458A502FC8AFE5FFC2AC91BD33B5F6AAA4CFA4EFFFA85DCEB8B8F3746ED43C598AECB548EA94E30E7333BE0171 </TagList>
 				</Script>
 				<Script id="2" name="run all">
 					<Options hidden="False" access="ReadWrite" runwithfullaccess="False" compatibility="0">0</Options>
-					<TagList>#^FMI%SCRPTBD431DA0FA3777D421A12D451FA03A186C80865E12F4334BBDCC073642A93D58444E818E0002468BA5CFAA7670E20D2F </TagList>
+					<TagList>#^FMI%SCRPTBD431DA0FA3777D421A12D451FA03A186C80865E12F4334BBDCC073642A93D58A7A8C5B546294430B27BE879DE569A09 </TagList>
 				</Script>
 				<Script id="3" name="run debug">
 					<Options hidden="False" access="ReadWrite" runwithfullaccess="False" compatibility="0">0</Options>
-					<TagList>#^FMI%SCRPTCA1093E046F97F75C7059BA2F924E55CAE03776D7851A1222E21ADB4288C6293C13684A910D04BE99FF81B7E139DA3A7 </TagList>
+					<TagList>#^FMI%SCRPTCA1093E046F97F75C7059BA2F924E55CAE03776D7851A1222E21ADB4288C6293CCB3A24108374AF094A5DD62BAF9A81C </TagList>
 				</Script>
 			</ScriptCatalog>
 			<ThemeCatalog membercount="1">

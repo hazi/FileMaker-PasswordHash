@@ -10,6 +10,8 @@
 //   textToFilter: [Text]
 //
 // Result: [Text]
+//
+// Licensed under the BSD license. See https://github.com/hazi/FileMaker-PasswordHash/blob/master/LICENSE
 Filter(
   textToFilter;
    " !\"#$%&'()*+,-./"

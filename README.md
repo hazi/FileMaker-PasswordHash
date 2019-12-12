@@ -99,11 +99,7 @@ $ rake run DEBUG=1 PASSWORD="10000round" ROUND="10000" SALT="d7NNUNKUfiL/vaP4"
 - Issueでのご指摘受け付けていますので、お気軽にご連絡ください。
 - 英語化などのご協力も募集中です。
 
-## ライセンス
+## License
 
-Licensed under the BSD license. See [LICENSE file](./LICENSE) for details.
-
-この関数の大元の実装は下記を利用しています
-
-- [unix-crypt](https://github.com/mogest/unix-crypt) [BSD License](https://github.com/mogest/unix-crypt/blob/master/LICENSE)
+Licensed under the [BSD license](./LICENSE).
 
